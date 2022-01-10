@@ -8,44 +8,80 @@ Created on Mon Dec 27 22:44:34 2021
 import numpy as np
 from numba import njit
 
-@njit(cache=True)
+#@njit(cache=True)
 def checkForMatches(field, run_over, k):
     
-    run_over_zoom = np.arange(3)
-    
-    # For each row in field, except first and last 
+    match_n = 3
+
+    # Search for horizontal matches
     for row in run_over:
-        
-        # For each column in field, except first and last
+        cur = -1
+        last = -2
+        cnt = 0
+
         for col in run_over:
+            cur = field[row, col]
             
-            # Create zoomed field (3x3 box)
-            zoomed_field = field[row-1:row+2, col-1:col+2]
-            
-            # Check rows for match
-            for row_zoom in run_over_zoom:
+            if cur == k+1:
+                # Skip
+                cnt = 0
+                pass
+            else:
                 
-                if (zoomed_field[row_zoom, 0] == 
-                    zoomed_field[row_zoom, 1] == 
-                    zoomed_field[row_zoom, 2]):
-                    
-                    
-                    if zoomed_field[row_zoom, 0] != k+1:
-                        # We had same items in entire row
-                        field[row-1+row_zoom, col-1:col+2] = -2
+                if cur == last:
+                    cnt += 1
+                else:
+    
+                    if cnt >= match_n:
+                        # Means that the previous n+ were equal but the current one isn't
+                        # Mark them
+                        field[row, col-cnt:col] = -1
                         return True
                     
-            # Check columns for match
-            for col_zoom in run_over_zoom:
-                
-                if (zoomed_field[0, col_zoom] == 
-                    zoomed_field[1, col_zoom] == 
-                    zoomed_field[2, col_zoom]):
-                
-                    if zoomed_field[0, col_zoom] != k+1:
-                        # We had same items in entire column
-                        field[row-1:row+2, col-1+col_zoom] = -1
+                    cnt = 1
+                    last = cur
+    
+        if cnt >= match_n:
+            # Means we went to last entry and the previous n+ were equal
+            # Mark
+ #           marcus sæt breakpoint her og kig på det.. ses 
+            field[row, col+1-cnt:] = -1
+            return True
+
+    # Search for vertical matches
+    for col in run_over:
+        cur = -1
+        last = -2
+        cnt = 0
+
+        for row in run_over:
+            cur = field[row, col]
+            
+            if cur == k+1:
+                # Skip
+                cnt = 0
+                pass
+            else:
+            
+                if cur == last:
+                    cnt += 1
+                else:
+    
+                    if cnt >= match_n:
+                        # Means that the previous n+ were equal but the current one isn't
+                        # Mark them
+                        field[row-cnt:row, col] = -1
                         return True
+                    
+                    cnt = 1
+                    last = cur
+    
+        if cnt >= match_n:
+            # Means we went to last entry and the previous n+ were equal
+            # Mark them
+            field[row+1-cnt:, col] = -1
+            return True
+
     return False
 
 #@njit(cache=True)
