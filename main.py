@@ -55,7 +55,7 @@ field = (np.random.randint(low=0, high=k, size=n*n)).reshape(n, n)
 Now check for first available move that will enable three connected pieces
 '''
 
-run_over = np.arange(n-2)+1
+run_over = range(n)#np.arange(n-2)+1
 
 run_over_full = range(n)
 run_over_full_reversed = np.flip(run_over_full)
@@ -135,6 +135,8 @@ The idea is to go through vertically first.
     If yes, do that
 
 2) Check the row directly above and directly below
+    
+Then do the same thing vertically. 
 
 '''
 
@@ -210,8 +212,6 @@ for row in run_over:
                             #marcus break here and return to the loop that checks for matches
                     
                             break
-                        
-                    # TODO need to check if there are any rows above or below, otherwise we cannot do this 
                                      
                     '''
                     Check if we can get a match from above on the left side
@@ -298,48 +298,207 @@ for row in run_over:
                         
                 cnt = 1
                 last = cur
+                
+'''
+Search for vertical matches 
+'''
+for col in run_over:
+    cur = -1
+    last = -2
+    cnt = 0
+ 
+    for row in run_over:
+        cur = field[row, col]
+        
+        if cur == k+1:
+            # Skip
+            cnt = 0
+            pass
+        else:
+            
+            if cur == last:
+                cnt += 1
+            else:
+    
+                if cnt >= match_n:
+                    # Means that the previous n+ were equal but the current one isn't
+                    # Check if switching neighbouring values will do anything
+                    
+                    '''
+                    Check directly above
+                    
+                    a
+                    b
+                    a
+                    a
+                    '''
+                    
+                    upmost_idx = row-cnt
+                    
+                    if upmost_idx > 1:
+                        # Means the upmost is not at 0th or 1st entry, 
+                        # thus we can check if switching the two entries on top will result in a match
+                
+                        # Checking value two steps away
+                        upmost_value = field[upmost_idx-2, col]
+                        
+                        if upmost_value == last:
+                            # We will get a match if we switch these
+                            # So do it
+
+                            field[upmost_idx-2, col] = field[upmost_idx-1, col]
+                            field[upmost_idx-1, col] = upmost_value
+                            
+                            #marcus break here and return to the loop that checks for matches
+                            
+                            break
+                        
+                    '''
+                    Check directly below
+                    
+                    a
+                    a
+                    b
+                    a
+                    '''
+                                    
+                    downmost_idx = row-1
+                    
+                    if downmost_idx < (n-2):
+                        # Means the downmost is not at lowest or 2nd lowest entry, 
+                        # thus we can check if switching the two entries will result in a match
+                
+                        # Checking value two steps away
+                        downmost_value = field[downmost_idx+2, col]
+                        
+                        if downmost_value == last:
+                            # We will get a match if we switch these
+                            # So do it
+
+                            field[downmost_idx+2, col] = field[downmost_idx+1, col]
+                            field[downmost_idx+1, col] = downmost_value
+                            
+                            #marcus break here and return to the loop that checks for matches
+                            
+                            break
+                        
+                    '''
+                    Check if we can get a match from above on the left side
+                    a
+                     a
+                     a
+                    '''         
+                    
+                    if (upmost_idx > 0) and col != 0:
+                    
+                        # Means the upmost is not at 1st entry, 
+                        # thus we can check if switching with the value one step to the left and one step up will give a match
+                
+                        leftmost_value = field[upmost_idx-1, col-1]
+                        
+                        if leftmost_value == last:
+                            # We will get a match if we switch these
+                            # So do it
+
+                            field[upmost_idx-1, col-1] = field[upmost_idx-1, col]
+                            field[upmost_idx-1, col] = leftmost_value
+                        
+                            break
+                    
+                    
+                    '''
+                    Check if we can get a match from below on the left side
+                     a
+                     a
+                    a
+                    '''
+                    
+                    if (downmost_idx < (n-1)) and col != 0:
+                    
+                        # Means the downmost is not at 1st entry, 
+                        # thus we can check if switching with the value one step to the left and one step down will give a match
+                
+                        leftmost_value = field[downmost_idx+1, col-1]
+                        
+                        if leftmost_value == last:
+                            # We will get a match if we switch these
+                            # So do it
+
+                            field[downmost_idx+1, col-1] = field[downmost_idx+1, col]
+                            field[downmost_idx+1, col] = leftmost_value
+                        
+                            break
+                        
+                        
+                    '''
+                    Check if we can get a match from above on the right side
+                    
+                     a
+                    a
+                    a
+                    '''         
+                    
+                    if (upmost_idx > 0) and col != (n-1):
+                    
+                        # Means the upmost is not at last entry, 
+                        # thus we can check if switching with the value one step to the right and one step up will give a match
+                
+                        rightmost_value = field[upmost_idx-1, col+1]
+                        
+                        if rightmost_value == last:
+                            # We will get a match if we switch these
+                            # So do it
+
+                            field[upmost_idx-1, col+1] = field[upmost_idx-1, col]
+                            field[upmost_idx-1, col] = rightmost_value
+                        
+                            break
+                    
+                    
+                    '''
+                    Check if we can get a match from below on the right side
+                    
+                    a
+                    a
+                     a
+                    '''
+                    
+                    if (downmost_idx < (n-1)) and col != (n-1):
+                    
+                        # Means the downmost is not at 1st entry, 
+                        # thus we can check if switching with the value one step to the right and one step down will give a match
+                
+                        rightmost_value = field[downmost_idx+1, col+1]
+                        
+                        if rightmost_value == last:
+                            # We will get a match if we switch these
+                            # So do it
+
+                            field[downmost_idx+1, col+1] = field[downmost_idx+1, col]
+                            field[downmost_idx+1, col] = rightmost_value
+                        
+                            break
+                        
+                # TODO: do these scenarios
+                '''
+                a
+                 a
+                a
+                
+                 a
+                a
+                 a
+
+                '''
+                        
+                cnt = 1
+                last = cur
+                        
                     
 plt.figure()
 plt.matshow(field, vmin=-2, vmax=k+1)
 #plt.grid()
 plt.show()
-
-# # Search for vertical matches
-# for col in run_over:
-#     cur = -1
-#     last = -2
-#     cnt = 0
- 
-#     for row in run_over:
-#         cur = field[row, col]
-        
-#         if cur == k+1:
-#             # Skip
-#             cnt = 0
-#             pass
-#         else:
-        
-#             if cur == last:
-#                 cnt += 1
-#             else:
-    
-#                 if cnt >= match_n:
-#                     # Means that the previous n+ were equal but the current one isn't
-#                     # Mark them
-#                     field[row-cnt:row, col] = -1
- 
-                
-#                 cnt = 1
-#                 last = cur
-    
-#     if cnt >= match_n:
-#         # Means we went to last entry and the previous n+ were equal
-#         # Mark them
-#         field[row+1-cnt:, col] = -1
-
-    
-
-
 
 
 
